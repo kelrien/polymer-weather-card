@@ -1,0 +1,261 @@
+<dom-module id="card-weather">
+  <link rel="import" href="../bower_components/polymer/polymer.html">
+  <link rel="import" href="../bower_components/paper-ripple/paper-ripple.html">
+  <link rel="stylesheet" type="text/css" href="weather-icons/weather-icons.css">
+  <link href='http://fonts.googleapis.com/css?family=Dosis:200,300,400,500' rel='stylesheet' type='text/css'>
+  <style is="custom-style">
+    :host {
+      font-size: 8px;
+      display: block;
+      color: white;
+      width: 100%;
+      height: 100%;
+      box-shadow: -2px 5px 12px #888;
+      font-family: 'Dosis', sans-serif;
+      background-color: #07C8E1;
+      -webkit-transition: all 0.1s ease-in-out;
+      -o-transition: all 0.1s ease-in-out;
+      -moz-transition: all 0.1s ease-in-out;
+      -ms-transition: all 0.1s ease-in-out;
+      -kthtml-transition: all 0.1s ease-in-out;
+      transition: all 0.1s ease-in-out;
+    }
+
+    :host:hover{
+      box-shadow: -3px 8px 12px #888;
+    }
+
+    #additional {
+      margin: 10px auto;
+      min-height: 200px;
+      background-color: orange;
+      width: 90%;
+      box-shadow: -2px 5px 12px #888;
+      position: relative;
+      -webkit-transition: all 0.3s ease-in-out;
+      -o-transition: all 0.3s ease-in-out;
+      -moz-transition: all 0.3s ease-in-out;
+      -ms-transition: all 0.3s ease-in-out;
+      -kthtml-transition: all 0.3s ease-in-out;
+      transition: all 0.3s ease-in-out;
+    }
+
+    #weather_icon {
+      margin: 22px 15px 10px 0px;
+      font-size: 9em;
+      float: right;
+      -webkit-transition: 1s ease-in-out;
+      -moz-transition: 1s ease-in-out;
+      -o-transition: 1s ease-in-out;
+      transition: 1s ease-in-out;
+    }
+
+    #weather_icon:hover{
+      -webkit-transform: rotate(15deg) scale(1.05);
+      -moz-transform: rotate(15deg) scale(1.05);
+      -o-transform: rotate(15deg) scale(1.05);
+      transform: rotate(15deg) scale(1.05);
+    }
+
+    #city_name {
+      font-size: 6em;
+      padding-left: 5px;
+      margin: 5px 0px 5px 0px;
+    }
+
+    .extended{
+      height: 10px !important;
+      min-height: 10px !important;
+      font-size: 0em !important;
+    }
+
+    .extended:hover{
+      height: 15px !important;
+      min-height: 15px !important;
+    }
+
+    #refresh {
+      display: none;
+    }
+
+    #temp_min {
+      width: 50%;
+      margin: 0 auto;
+      text-align: center;
+      font-size: 5.0em;
+    }
+
+    #temp_max {
+      width: 50%;
+      margin: 0 auto;
+      text-align: center;
+      font-size: 5.0em;
+    }
+
+    #temp_now {
+      margin: 13px 0px 0px 6px;
+      font-size: 7.0em;
+      float: left;
+    }
+
+    #thermometer-icon{
+      width: 100% !important;
+      margin: 0 auto;
+      text-align: center;
+      font-size: 14em;
+    }
+
+    .temp{
+      margin: 0px 0px 0px 0px;
+    }
+
+    paper-ripple {
+      color: #FFEA00;
+    }
+  </style>
+
+  <template>
+    <div style="width: 100%;overflow: hidden">
+      <div class="wi wi-day-sunny" id="weather_icon"></div>
+      <div class="temp" id="temp_now">?</div>
+    </div>
+    <div id="additional">
+      <div class="-temp" id="temp_max">?</div>
+      <div class="wi wi-thermometer temp" id="thermometer-icon"></div>
+      <div class="temp" id="temp_min">?</div>
+      <paper-ripple></paper-ripple>
+    </div>
+    <div id="city_name">?</div>
+  </template>
+</dom-module>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<script>
+var API_KEY = "ENTER YOUR OPENWEATHERMAP API KEY HERE"
+weather_card = Polymer({
+  is: 'card-weather',
+  listeners: {
+    'additional.tap': '_extend'
+  },
+  get_weather: function(params){
+    url = "http://api.openweathermap.org/data/2.5/weather?appid=" + API_KEY + "&zip=" + params.zip + "," + params.country;
+    var that = this;
+    if (params.metric) {
+      url += '&units=metric';
+      temp_postfix = "C"
+    } else {
+      url += '&units=imperial';
+    }
+    $.ajax({
+      type: "GET",
+      url: url,
+      dataType: 'json',
+      async: true,
+      success: function(data) {
+        that.weather = data;
+      }
+    }); 
+  },
+  _extend: function(e){
+    if(this.$.additional.classList.contains("extended")){
+      this.$.additional.classList.remove("extended");
+    } else{
+      this.$.additional.classList.add("extended");
+    }
+  },
+  ready: function(e) {
+    if(!this.extended){
+      this._extend();
+    }
+    query = {
+      zip: this.zip, 
+      country: this.country, 
+      metric: this.metric
+    };
+    this.weather = this.get_weather(query);
+  },
+  properties: {
+    zip: {type:String,
+      observer: "_dataChanged"
+    },
+    weather: {
+      type: Object,
+      observer: "_weatherChanged"
+    },
+    country: {type: String,
+      observer: "_dataChanged"
+    },
+    metric: {type: Boolean,
+      observer: "_dataChanged"
+    },
+    interval: Number,
+    extended: {
+      type: Boolean,
+      observer: "_extend"
+    }
+  },
+  _dataChanged: function(){
+    if(this.zip != undefined){
+      query = {
+        zip: this.zip, 
+        country: this.country, 
+        metric: this.metric
+      };
+      this.weather = this.get_weather(query);
+    }
+  },
+  _weatherChanged: function(){
+    if(this.weather != undefined && this.weather.cod == 200){
+      this.$.temp_max.textContent = this.weather.main.temp_max + "°";
+      this.$.temp_min.textContent = this.weather.main.temp_min + "°";
+      this.$.temp_now.textContent = this.weather.main.temp + "°";
+      this.$.city_name.textContent = this.weather.name;
+      for (var i = this.$.weather_icon.classList.length - 1; i >= 0; i--) {
+          if(this.$.weather_icon.classList[i].indexOf("wi-") > -1){
+            this.$.weather_icon.classList.remove(this.$.weather_icon.classList[i]);
+          }
+        };
+      iconCode = this.weatherClasses[this.weather.weather[0].icon];
+      this.$.weather_icon.classList.add(iconCode);
+    }
+  },
+  weatherClasses: {
+    // sunny
+    "01d":"wi-day-sunny",
+    // sunny overcast
+    "02d":"wi-day-sunny-overcast",
+    // scattered clouds
+    "03d":"wi-day-cloudy",
+    // broken clouds
+    "04d":"wi-day-cloudy",
+    // shower rain
+    "09d":"wi-day-showers",
+    // rain
+    "10d":"wi-day-rain",
+    // thunderstorm
+    "11d":"wi-day-thunderstorm",
+    // snow
+    "13d":"wi-day-snow",
+    // mist
+    "50d":"wi-day-fog",
+    // clear night
+    "01n":"wi-night-clear",
+    // overcast night
+    "02n":"wi-night-cloudy",
+    // scattered clouds night
+    "03n":"wi-night-cloudy",
+    // broken clouds night
+    "04n":"wi-night-cloudy",
+    // showers night
+    "09n":"wi-night-showers",
+    // rain night
+    "10n":"wi-night-rain",
+    // thunderstorm night
+    "11n":"wi-night-thunderstorm",
+    // night snow night
+    "13n":"wi-night-snow",
+    // night mist night
+    "50n":"wi-night-fog",
+  }
+});
+</script>

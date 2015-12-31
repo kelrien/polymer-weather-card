@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">  
+    <script src="bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
+    <link rel="import" href="weather_card/card-weather.html">
+    <link rel="import" href="bower_components/paper-fab/paper-fab.html">
+    <link rel="import" href="bower_components/iron-icons/iron-icons.html">
+    <link rel="import" href="bower_components/paper-input/paper-input.html">
+    <link rel="import" href="bower_components/paper-button/paper-button.html">
+    <link rel="import" href="bower_components/font-roboto/roboto.html">
+    <style type="text/css">
+      html {
+
+      }
+
+      body {
+        background-color: #B5B5B5;
+        margin-top: 0px;
+      }
+
+      .weather-card{
+          margin: 0 auto;
+          margin-top: 30px;
+          display: block;
+          width: 100%;
+      }
+
+      .wrapper{
+        margin: 0 auto;
+        width: 100%;
+      }
+
+      .container{
+        margin: 50px auto 0 auto;
+        box-shadow: -2px 5px 12px #888;
+        padding: 45px;
+        background-color: white;
+      }
+
+      .weather_dialog{
+        position: fixed;
+        right: 20px;
+        bottom: -260px;
+        height: 210px;
+        opacity: 1.0;
+        width: 300px;
+        padding: 0;
+        background-color: white;
+        box-shadow: -2px 5px 12px #888;
+        -webkit-transition: all 0.45s ease;
+        -o-transition: all 0.45s ease;
+        -moz-transition: all 0.45s ease;
+        -ms-transition: all 0.45s ease;
+        -kthtml-transition: all 0.45s ease;
+        transition: all 0.45s ease;
+      }
+
+      .weather_dialog_title{
+        width: 100%;
+        height: 30px;
+        position: relative;
+        padding: 1px 0px 1px 0px;
+        background-color: orange;
+        color: white;
+        font-size: 16px;
+        font-family: sans-serif;
+        box-shadow: 0px 1px 3px #888;
+      }
+
+
+      .weather_extended{
+        bottom: 125px;
+      }
+
+      @media(max-width:477px){
+        .container{
+          width: 80%;
+        }
+      }
+
+      @media(min-width:478px){
+        .container{
+          width: 80%;
+        }
+      }
+      @media(min-width:992px){
+        .container{
+          width: 50%;
+        }
+      }
+      @media(min-width:1200px){
+        .container{
+          width: 30%;
+        }
+      }
+    </style>
+  </head>
+
+  <body unresolved>
+    <div class="wrapper">
+      <div class="container">
+        <card-weather class="weather-card" zip="68159" country="de" metric extended></card-weather>
+        <card-weather class="weather-card" zip="68526" country="de" metric></card-weather>
+        <card-weather class="weather-card" zip="20060" country="us" metric></card-weather>
+        <card-weather class="weather-card" zip="22313" country="us" metric></card-weather>
+      </div>
+    </div>
+    <paper-fab id="add_button" icon="add" style="background-color: orange; position: fixed; right: 30px; bottom: 30px;"></paper-fab>
+    <div id="weather_dialog" class="weather_dialog">
+      <div class="weather_dialog_title"><span style="margin-left: 5px; position: absolute; bottom: 0px">New card</span></div>
+      <paper-input id="input_zip" style="width: 90%; margin: 0 auto" label="Zip"></paper-input>
+      <paper-input id="input_code" style="width: 90%; margin: 0 auto" label="Country Code"></paper-input>
+      <paper-button id="button_ok" raised style="float: right; font-family: 'roboto'; background-color: #C7F0D6; margin-top: 10px">Ok</paper-button>
+      <paper-button id="button_cancel" raised style="float: right; font-family: 'roboto'; background-color: #FFBABA; margin-top: 10px">Cancel</paper-button>
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script type="text/javascript">
+
+      function toggleDialog(){
+          if(!$('#weather_dialog').hasClass("weather_extended")){
+            $('#weather_dialog').addClass("weather_extended");
+          } else {
+            $('#weather_dialog').removeClass("weather_extended");
+          }
+      }
+
+      $(function(){
+        $('#add_button').click(toggleDialog);
+        $('#button_cancel').click(toggleDialog);
+        $('#button_ok').click(function(){
+          toggleDialog();
+          zip = $('#input_zip').val();
+          cc = $('#input_code').val();
+          console.log("ZIP" + zip);
+          console.log("CC" + cc);
+          addWeatherCard(zip,cc,true,'.container');
+        });
+      });
+
+
+      function _createWeatherCard(zip, country_code, isMetric){
+        if(zip == undefined || country_code == undefined){
+          return undefined;
+        } else{
+          card = '<card-weather class="weather-card" zip="' + zip + '"';
+          if(isMetric){
+            card += " metric"
+          }
+          card += ' country="' + country_code + '"></card-weather>';
+          return card;
+        }
+      }
+
+      function addWeatherCard(zip, country_code, isMetric, element){
+        card = _createWeatherCard(zip,country_code, isMetric);
+        if(card != undefined){
+          $(element).append(card);
+          return true;
+        } else{
+          return false;
+        }
+      }
+    </script>
+  </body>
+
+</html>
